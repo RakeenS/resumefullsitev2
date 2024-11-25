@@ -33,13 +33,13 @@ export default function Navbar() {
   const getContainerClasses = () => {
     switch (deviceType) {
       case 'mobile':
-        return 'px-2 w-full';
+        return 'px-4';
       case 'tablet':
-        return 'px-4 w-full';
+        return 'px-6';
       case 'desktop':
-        return 'px-6 w-full';
+        return 'px-8';
       default:
-        return 'px-2 w-full';
+        return 'px-4';
     }
   };
 
@@ -48,10 +48,12 @@ export default function Navbar() {
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled ? 'bg-white/95 backdrop-blur-md shadow-lg' : 'bg-transparent'
+        isScrolled 
+          ? 'bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg shadow-lg'
+          : 'bg-transparent'
       }`}
     >
-      <div className={getContainerClasses()}>
+      <div className={`max-w-7xl mx-auto ${getContainerClasses()}`}>
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
@@ -60,7 +62,7 @@ export default function Navbar() {
               whileTap={{ scale: 0.95 }}
               className="flex items-center"
             >
-              <span className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-blue-500 to-purple-600 text-transparent bg-clip-text">
+              <span className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
                 CareerQuestAI
               </span>
             </motion.div>
@@ -75,14 +77,20 @@ export default function Navbar() {
                   <Link
                     key={href}
                     href={href}
-                    className={`flex items-center space-x-1 text-sm font-medium transition-colors ${
-                      pathname === '/jobs'
-                        ? 'text-blue-500'
-                        : 'text-gray-600 hover:text-gray-900'
-                    }`}
+                    className="group relative flex items-center space-x-1 text-sm font-medium transition-colors"
                   >
-                    <ClipboardDocumentListIcon className="h-4 w-4" />
-                    <span>{label}</span>
+                    <motion.div
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className={`flex items-center space-x-1 ${
+                        pathname === '/jobs'
+                          ? 'text-blue-500'
+                          : 'text-gray-600 dark:text-gray-300 group-hover:text-blue-500 dark:group-hover:text-blue-400'
+                      }`}
+                    >
+                      <ClipboardDocumentListIcon className="h-4 w-4" />
+                      <span>{label}</span>
+                    </motion.div>
                   </Link>
                 );
               }
@@ -90,14 +98,14 @@ export default function Navbar() {
                 <Link
                   key={href}
                   href={href}
-                  className="relative group"
+                  className="group relative"
                 >
                   <motion.span
                     whileHover={{ y: -2 }}
-                    className={`text-sm font-medium transition-colors ${
+                    className={`relative text-sm font-medium transition-colors ${
                       isActive
                         ? 'text-blue-500'
-                        : 'text-gray-600 hover:text-gray-900'
+                        : 'text-gray-600 dark:text-gray-300 group-hover:text-blue-500 dark:group-hover:text-blue-400'
                     }`}
                   >
                     {label}
@@ -106,7 +114,11 @@ export default function Navbar() {
                     <motion.div
                       layoutId="navbar-indicator"
                       className="absolute -bottom-1 left-0 right-0 h-0.5 bg-blue-500"
-                      transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                      transition={{
+                        type: 'spring',
+                        stiffness: 500,
+                        damping: 30
+                      }}
                     />
                   )}
                 </Link>
