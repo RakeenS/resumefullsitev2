@@ -41,7 +41,7 @@ export default function MobileMenu({ navLinks }: MobileMenuProps) {
       {/* Hamburger Button */}
       <button
         onClick={toggleMenu}
-        className="p-2 text-gray-300 hover:text-white focus:outline-none md:hidden"
+        className="p-2 text-gray-600 hover:text-gray-900 focus:outline-none md:hidden"
         aria-label="Toggle mobile menu"
       >
         {isOpen ? (
@@ -70,13 +70,13 @@ export default function MobileMenu({ navLinks }: MobileMenuProps) {
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="absolute right-0 top-0 bottom-0 w-64 bg-gray-900 shadow-xl"
+              className="absolute right-0 top-0 bottom-0 w-64 bg-white shadow-xl"
             >
               <div className="flex flex-col h-full">
                 <div className="flex justify-end p-4">
                   <button
                     onClick={toggleMenu}
-                    className="p-2 text-gray-300 hover:text-white focus:outline-none"
+                    className="p-2 text-gray-600 hover:text-gray-900 focus:outline-none"
                   >
                     <X className="h-6 w-6" />
                   </button>
@@ -91,7 +91,7 @@ export default function MobileMenu({ navLinks }: MobileMenuProps) {
                       className={`block py-3 px-4 text-base font-medium rounded-lg transition-colors ${
                         pathname === href
                           ? 'bg-blue-500/10 text-blue-500'
-                          : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                          : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                       }`}
                     >
                       <div className="flex items-center space-x-2">

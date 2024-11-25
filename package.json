@@ -45,7 +45,9 @@
     "react-dom": "18.2.0",
     "tailwind-merge": "^2.5.4",
     "tailwindcss": "3.3.5",
-    "tailwindcss-animate": "^1.0.7",
     "typescript": "5.3.2"
+  },
+  "devDependencies": {
+    "tailwindcss-animate": "^1.0.7"
   }
 }
