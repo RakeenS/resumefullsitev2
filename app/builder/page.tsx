@@ -433,7 +433,7 @@ export default function BuilderPage() {
                                 />
                               </div>
                               <Button
-                                variant="ghost"
+                                variant="outline"
                                 size="sm"
                                 onClick={() => removeExperience(index)}
                                 className="ml-4 text-red-500 hover:text-red-700"
@@ -505,7 +505,7 @@ export default function BuilderPage() {
                                 />
                               </div>
                               <Button
-                                variant="ghost"
+                                variant="outline"
                                 size="sm"
                                 onClick={() => removeEducation(index)}
                                 className="ml-4 text-red-500 hover:text-red-700"
