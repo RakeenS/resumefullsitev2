@@ -10,7 +10,7 @@ export function useDeviceType(): DeviceType {
   useEffect(() => {
     const handleResize = () => {
       const width = window.innerWidth;
-      if (width < 768) {
+      if (width < 640) {
         setDeviceType('mobile');
       } else if (width < 1024) {
         setDeviceType('tablet');

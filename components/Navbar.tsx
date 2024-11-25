@@ -6,11 +6,14 @@ import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
 import ThemeToggle from './ThemeToggle';
 import UserMenu from './UserMenu';
+import MobileMenu from './MobileMenu';
 import { ClipboardDocumentListIcon } from '@heroicons/react/24/outline';
+import { useDeviceType } from '@/hooks/useDeviceType';
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const pathname = usePathname();
+  const deviceType = useDeviceType();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -28,6 +31,19 @@ export default function Navbar() {
     { href: '/job-tools', label: 'Job Tools' },
   ];
 
+  const getContainerClasses = () => {
+    switch (deviceType) {
+      case 'mobile':
+        return 'px-2 w-full';
+      case 'tablet':
+        return 'px-4 w-full';
+      case 'desktop':
+        return 'px-6 w-full';
+      default:
+        return 'px-2 w-full';
+    }
+  };
+
   return (
     <motion.header
       initial={{ y: -100 }}
@@ -36,7 +52,7 @@ export default function Navbar() {
         isScrolled ? 'bg-gray-900/95 backdrop-blur-md shadow-lg' : 'bg-transparent'
       }`}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className={getContainerClasses()}>
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
@@ -45,13 +61,13 @@ export default function Navbar() {
               whileTap={{ scale: 0.95 }}
               className="flex items-center"
             >
-              <span className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-purple-600 text-transparent bg-clip-text">
+              <span className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-blue-500 to-purple-600 text-transparent bg-clip-text">
                 CareerQuestAI
               </span>
             </motion.div>
           </Link>
 
-          {/* Navigation Links */}
+          {/* Desktop Navigation Links */}
           <nav className="hidden md:flex items-center space-x-8">
             {navLinks.map(({ href, label }) => {
               const isActive = pathname === href;
@@ -99,32 +115,11 @@ export default function Navbar() {
             })}
           </nav>
 
-          {/* Mobile Menu Button */}
-          <div className="md:hidden">
-            <motion.button
-              whileTap={{ scale: 0.95 }}
-              className="text-gray-300 hover:text-white p-2"
-            >
-              <svg
-                className="h-6 w-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
-              </svg>
-            </motion.button>
-          </div>
-
-          {/* Action Buttons */}
+          {/* Right Section */}
           <div className="flex items-center space-x-4">
             <ThemeToggle />
             <UserMenu />
+            {deviceType === 'mobile' && <MobileMenu navLinks={navLinks} />}
           </div>
         </div>
       </div>

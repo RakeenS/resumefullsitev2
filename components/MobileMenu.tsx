@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -15,16 +15,33 @@ export default function MobileMenu({ navLinks }: MobileMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
 
+  // Close menu when route changes
+  useEffect(() => {
+    setIsOpen(false);
+  }, [pathname]);
+
+  // Prevent body scroll when menu is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen]);
+
   const toggleMenu = () => {
     setIsOpen(!isOpen);
   };
 
   return (
-    <div className="md:hidden">
+    <>
       {/* Hamburger Button */}
       <button
         onClick={toggleMenu}
-        className="p-2 text-gray-300 hover:text-white focus:outline-none"
+        className="p-2 text-gray-300 hover:text-white focus:outline-none md:hidden"
         aria-label="Toggle mobile menu"
       >
         {isOpen ? (
@@ -34,16 +51,16 @@ export default function MobileMenu({ navLinks }: MobileMenuProps) {
         )}
       </button>
 
-      {/* Mobile Menu Overlay */}
+      {/* Mobile Menu Portal */}
       <AnimatePresence>
         {isOpen && (
-          <>
+          <div className="fixed inset-0 z-[100] md:hidden">
             {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/50 z-40"
+              className="absolute inset-0 bg-black/50"
               onClick={toggleMenu}
             />
 
@@ -53,7 +70,7 @@ export default function MobileMenu({ navLinks }: MobileMenuProps) {
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed right-0 top-0 bottom-0 w-64 bg-gray-900 z-50 shadow-xl"
+              className="absolute right-0 top-0 bottom-0 w-64 bg-gray-900 shadow-xl"
             >
               <div className="flex flex-col h-full">
                 <div className="flex justify-end p-4">
@@ -65,7 +82,7 @@ export default function MobileMenu({ navLinks }: MobileMenuProps) {
                   </button>
                 </div>
 
-                <nav className="px-4 py-2">
+                <nav className="flex-1 overflow-y-auto px-4 py-2">
                   {navLinks.map(({ href, label }) => (
                     <Link
                       key={href}
@@ -88,9 +105,9 @@ export default function MobileMenu({ navLinks }: MobileMenuProps) {
                 </nav>
               </div>
             </motion.div>
-          </>
+          </div>
         )}
       </AnimatePresence>
-    </div>
+    </>
   );
 }
