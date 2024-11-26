@@ -1,7 +1,8 @@
 import { Metadata } from 'next';
 import { Inter } from 'next/font/google';
-import { Toaster } from '@/components/ui/toaster';
+import { Toaster } from 'react-hot-toast';
 import { SupabaseAuthProvider } from '@/components/providers/supabase-auth-provider';
+import { ThemeProvider } from 'next-themes';
 import './globals.css';
 import ClientLayout from '@/components/ClientLayout';
 
@@ -27,8 +28,17 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <SupabaseAuthProvider>
-          <ClientLayout>{children}</ClientLayout>
-          <Toaster />
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="dark"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <ClientLayout>
+              {children}
+            </ClientLayout>
+            <Toaster position="bottom-right" />
+          </ThemeProvider>
         </SupabaseAuthProvider>
       </body>
     </html>

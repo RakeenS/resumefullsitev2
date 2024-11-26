@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Auth } from '@supabase/auth-ui-react';
 import { ThemeSupa } from '@supabase/auth-ui-shared';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -11,82 +11,63 @@ export default function LoginPage() {
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get('redirectTo') || '/dashboard';
   const supabase = createClientComponentClient();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (event === 'SIGNED_IN' && session) {
+    const checkUser = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
           router.push(redirectTo);
-          router.refresh();
         }
+      } catch (error) {
+        console.error('Error checking session:', error);
+      } finally {
+        setLoading(false);
       }
-    );
-
-    return () => {
-      authListener?.subscription.unsubscribe();
     };
+    checkUser();
   }, [redirectTo, router, supabase.auth]);
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
-      <div className="max-w-md w-full space-y-8 bg-gray-800 p-8 rounded-xl shadow-lg">
-        <div className="text-center">
-          <h2 className="text-3xl font-bold text-white">Welcome Back</h2>
-          <p className="mt-2 text-gray-400">
-            Sign in to your account to continue
-          </p>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <div className="max-w-md w-full mx-4">
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold text-white mb-2">Welcome Back</h2>
+          <p className="text-gray-400">Sign in to continue to CareerQuestAI</p>
         </div>
-        <Auth
-          supabaseClient={supabase}
-          appearance={{
-            theme: ThemeSupa,
-            variables: {
-              default: {
-                colors: {
-                  brand: '#3B82F6',
-                  brandAccent: '#2563EB',
-                  inputBackground: '#1F2937',
-                  inputText: 'white',
-                  inputPlaceholder: '#9CA3AF',
-                  inputBorder: '#374151',
-                  dividerBackground: '#374151',
+        <div className="bg-gray-800 p-8 rounded-lg shadow-xl">
+          <Auth
+            supabaseClient={supabase}
+            appearance={{
+              theme: ThemeSupa,
+              variables: {
+                default: {
+                  colors: {
+                    brand: '#3b82f6',
+                    brandAccent: '#2563eb',
+                  },
                 },
               },
-            },
-            className: {
-              container: 'w-full',
-              button: 'bg-blue-600 hover:bg-blue-700 text-white w-full py-2 rounded-lg transition-colors',
-              input: 'bg-gray-700 text-white border-gray-600 w-full py-2 px-3 rounded-lg',
-              label: 'text-white',
-              message: 'text-red-500',
-            },
-          }}
-          theme="dark"
-          providers={[]}
-          redirectTo={`${typeof window !== 'undefined' ? window.location.origin : ''}/dashboard`}
-          onlyThirdPartyProviders={false}
-          magicLink={false}
-          localization={{
-            variables: {
-              sign_in: {
-                email_label: 'Email',
-                password_label: 'Password',
-                button_label: 'Sign In',
-                loading_button_label: 'Signing In...',
-                social_provider_text: 'Sign in with {{provider}}',
-                link_text: 'Already have an account? Sign in',
+              className: {
+                container: 'auth-container',
+                button: 'auth-button',
+                input: 'auth-input',
               },
-              sign_up: {
-                email_label: 'Email',
-                password_label: 'Password',
-                button_label: 'Sign Up',
-                loading_button_label: 'Signing Up...',
-                social_provider_text: 'Sign up with {{provider}}',
-                link_text: 'Don\'t have an account? Sign up',
-              },
-            },
-          }}
-        />
+            }}
+            theme="dark"
+            providers={['google']}
+            redirectTo={`${window.location.origin}/auth/callback?redirectTo=${redirectTo}`}
+          />
+        </div>
       </div>
     </div>
   );

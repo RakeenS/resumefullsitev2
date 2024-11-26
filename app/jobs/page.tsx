@@ -1,9 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { useRouter } from 'next/navigation';
+import { toast } from 'react-hot-toast';
 import JobColumn from '@/components/jobs/JobColumn';
-import { Job } from '@/components/jobs/JobCard';
 
 const JOB_STATUSES = [
   'Applied',
@@ -13,54 +15,98 @@ const JOB_STATUSES = [
   'Offer',
 ];
 
-export default function JobTracker() {
-  const [jobs, setJobs] = useState<Job[]>([
-    {
-      id: '1',
-      company: 'Example Tech',
-      position: 'Senior Developer',
-      location: 'Remote',
-      status: 'Applied',
-      dateApplied: '2024-01-15',
-      salary: '$120,000 - $150,000',
-      notes: 'Applied through company website',
-    },
-  ]);
+interface Job {
+  id: string;
+  company: string;
+  position: string;
+  location: string;
+  status: string;
+  date_applied: string;
+  salary?: string;
+  notes?: string;
+}
 
+export default function JobTracker() {
+  const [jobs, setJobs] = useState<Job[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingJob, setEditingJob] = useState<Job | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const supabase = createClientComponentClient();
+  const router = useRouter();
 
   const [newJob, setNewJob] = useState<Partial<Job>>({
     company: '',
     position: '',
     location: '',
     status: 'Applied',
-    dateApplied: new Date().toISOString().split('T')[0],
+    date_applied: new Date().toISOString().split('T')[0],
   });
 
-  const handleAddJob = () => {
-    if (!newJob.company || !newJob.position) return;
+  useEffect(() => {
+    const fetchJobs = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          router.push('/login');
+          return;
+        }
 
-    const job: Job = {
-      id: Date.now().toString(),
-      company: newJob.company,
-      position: newJob.position,
-      location: newJob.location || 'Not specified',
-      status: newJob.status || 'Applied',
-      dateApplied: newJob.dateApplied || new Date().toISOString().split('T')[0],
-      salary: newJob.salary,
-      notes: newJob.notes,
+        const { data: jobs, error } = await supabase
+          .from('jobs')
+          .select('*')
+          .order('date_applied', { ascending: false });
+
+        if (error) throw error;
+        setJobs(jobs || []);
+      } catch (error) {
+        console.error('Error fetching jobs:', error);
+        toast.error('Failed to load jobs');
+      } finally {
+        setIsLoading(false);
+      }
     };
 
-    setJobs([...jobs, job]);
-    setNewJob({
-      company: '',
-      position: '',
-      location: '',
-      status: 'Applied',
-      dateApplied: new Date().toISOString().split('T')[0],
-    });
-    setIsModalOpen(false);
+    fetchJobs();
+  }, [supabase, router]);
+
+  const handleAddJob = async () => {
+    if (!newJob.company || !newJob.position) return;
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        router.push('/login');
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('jobs')
+        .insert([
+          {
+            ...newJob,
+            user_id: session.user.id,
+          },
+        ])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setJobs([data, ...jobs]);
+      setNewJob({
+        company: '',
+        position: '',
+        location: '',
+        status: 'Applied',
+        date_applied: new Date().toISOString().split('T')[0],
+      });
+      setIsModalOpen(false);
+      toast.success('Job added successfully');
+    } catch (error) {
+      console.error('Error adding job:', error);
+      toast.error('Failed to add job');
+    }
   };
 
   const handleEditJob = (job: Job) => {
@@ -69,33 +115,89 @@ export default function JobTracker() {
     setIsModalOpen(true);
   };
 
-  const handleUpdateJob = () => {
+  const handleUpdateJob = async () => {
     if (!editingJob || !newJob.company || !newJob.position) return;
 
-    const updatedJobs = jobs.map((job) =>
-      job.id === editingJob.id
-        ? {
-            ...job,
-            ...newJob,
-          }
-        : job
+    try {
+      const { error } = await supabase
+        .from('jobs')
+        .update({
+          ...newJob,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', editingJob.id);
+
+      if (error) throw error;
+
+      setJobs(jobs.map((job) =>
+        job.id === editingJob.id
+          ? { ...job, ...newJob }
+          : job
+      ));
+      setEditingJob(null);
+      setNewJob({
+        company: '',
+        position: '',
+        location: '',
+        status: 'Applied',
+        date_applied: new Date().toISOString().split('T')[0],
+      });
+      setIsModalOpen(false);
+      toast.success('Job updated successfully');
+    } catch (error) {
+      console.error('Error updating job:', error);
+      toast.error('Failed to update job');
+    }
+  };
+
+  const handleDeleteJob = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('jobs')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setJobs(jobs.filter((job) => job.id !== id));
+      toast.success('Job deleted successfully');
+    } catch (error) {
+      console.error('Error deleting job:', error);
+      toast.error('Failed to delete job');
+    }
+  };
+
+  const handleStatusChange = async (jobId: string, newStatus: string) => {
+    try {
+      const { error } = await supabase
+        .from('jobs')
+        .update({
+          status: newStatus,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', jobId);
+
+      if (error) throw error;
+
+      setJobs(jobs.map((job) =>
+        job.id === jobId
+          ? { ...job, status: newStatus }
+          : job
+      ));
+      toast.success('Status updated successfully');
+    } catch (error) {
+      console.error('Error updating status:', error);
+      toast.error('Failed to update status');
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
     );
-
-    setJobs(updatedJobs);
-    setEditingJob(null);
-    setNewJob({
-      company: '',
-      position: '',
-      location: '',
-      status: 'Applied',
-      dateApplied: new Date().toISOString().split('T')[0],
-    });
-    setIsModalOpen(false);
-  };
-
-  const handleDeleteJob = (id: string) => {
-    setJobs(jobs.filter((job) => job.id !== id));
-  };
+  }
 
   return (
     <div className="min-h-screen bg-gray-900 text-white p-8">
@@ -213,9 +315,9 @@ export default function JobTracker() {
                     </label>
                     <input
                       type="date"
-                      value={newJob.dateApplied || ''}
+                      value={newJob.date_applied || ''}
                       onChange={(e) =>
-                        setNewJob({ ...newJob, dateApplied: e.target.value })
+                        setNewJob({ ...newJob, date_applied: e.target.value })
                       }
                       className="w-full px-3 py-2 bg-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500"
                     />

@@ -10,28 +10,26 @@ export async function middleware(req: NextRequest) {
     data: { session },
   } = await supabase.auth.getSession();
 
-  // Protected routes
-  const protectedRoutes = ['/dashboard', '/builder', '/jobs', '/upload-resume'];
-  const isProtectedRoute = protectedRoutes.some((route) =>
-    req.nextUrl.pathname.startsWith(route)
+  // Public routes that don't require authentication
+  const publicRoutes = ['/', '/login', '/signup', '/auth/callback'];
+  const isPublicRoute = publicRoutes.some(route => 
+    req.nextUrl.pathname === route || 
+    req.nextUrl.pathname.startsWith('/_next') ||
+    req.nextUrl.pathname.startsWith('/api') ||
+    req.nextUrl.pathname.startsWith('/auth')
   );
 
-  // Auth routes
-  const authRoutes = ['/login', '/signup'];
-  const isAuthRoute = authRoutes.some((route) =>
-    req.nextUrl.pathname.startsWith(route)
-  );
-
-  // If accessing a protected route without being authenticated
-  if (isProtectedRoute && !session) {
+  // If the route is not public and user is not authenticated
+  if (!isPublicRoute && !session) {
     const redirectUrl = new URL('/login', req.url);
     redirectUrl.searchParams.set('redirectTo', req.nextUrl.pathname);
     return NextResponse.redirect(redirectUrl);
   }
 
-  // If accessing auth pages while authenticated
-  if (session && isAuthRoute) {
-    return NextResponse.redirect(new URL('/dashboard', req.url));
+  // If accessing auth routes while authenticated
+  if ((req.nextUrl.pathname === '/login' || req.nextUrl.pathname === '/signup') && session) {
+    const redirectTo = req.nextUrl.searchParams.get('redirectTo');
+    return NextResponse.redirect(new URL(redirectTo || '/dashboard', req.url));
   }
 
   return res;
@@ -41,11 +39,12 @@ export const config = {
   matcher: [
     /*
      * Match all request paths except for the ones starting with:
-     * - api (API routes)
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
+     * - public (public files)
+     * - api (API routes)
      */
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+    '/((?!_next/static|_next/image|favicon.ico|public|api).*)',
   ],
 };

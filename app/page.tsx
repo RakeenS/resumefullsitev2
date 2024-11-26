@@ -1,9 +1,11 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRightIcon, DocumentTextIcon, SparklesIcon, UserGroupIcon, ChartBarIcon, ShieldCheckIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import Image from 'next/image';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
 const stats = [
   { id: 1, name: 'Resumes Created', value: '10,000+' },
@@ -31,8 +33,28 @@ const features = [
 ];
 
 export default function Home() {
+  const [authStatus, setAuthStatus] = useState<string>('Checking...');
+  const supabase = createClientComponentClient();
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (error) {
+        setAuthStatus('Error checking auth status');
+        return;
+      }
+      setAuthStatus(session ? 'Logged in' : 'Not logged in');
+    };
+    checkAuth();
+  }, [supabase.auth]);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      {/* Auth Status Display - Temporary */}
+      <div className="fixed top-20 right-4 bg-blue-500 text-white px-4 py-2 rounded-md z-50">
+        Auth Status: {authStatus}
+      </div>
+
       {/* Hero Pattern */}
       <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
 

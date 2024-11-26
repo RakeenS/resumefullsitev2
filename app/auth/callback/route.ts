@@ -13,5 +13,6 @@ export async function GET(request: Request) {
   }
 
   // URL to redirect to after sign in process completes
-  return NextResponse.redirect(new URL('/dashboard', request.url));
+  const redirectTo = requestUrl.searchParams.get('redirectTo');
+  return NextResponse.redirect(new URL(redirectTo || '/dashboard', request.url));
 }
