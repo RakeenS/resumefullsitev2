@@ -506,7 +506,7 @@ export default function JobTools() {
                         <Button
                           onClick={handleSaveCoverLetter}
                           disabled={isSaving}
-                          variant="secondary"
+                          variant="default"
                           className="flex-1 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
                         >
                           {isSaving ? (
@@ -733,7 +733,7 @@ export default function JobTools() {
                         <Button
                           onClick={handleSaveEmail}
                           disabled={isSaving}
-                          variant="secondary"
+                          variant="default"
                           className="flex-1 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
                         >
                           {isSaving ? (
