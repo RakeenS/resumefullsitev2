@@ -8,14 +8,7 @@ export async function middleware(req: NextRequest) {
     const supabase = createMiddlewareClient({ req, res });
 
     // Refresh session if expired
-    const {
-      data: { session },
-      error: sessionError,
-    } = await supabase.auth.getSession();
-
-    if (sessionError) {
-      console.error('Session error in middleware:', sessionError);
-    }
+    await supabase.auth.getSession();
 
     // Public routes that don't require authentication
     const publicRoutes = ['/', '/login', '/signup', '/auth/callback'];
@@ -26,6 +19,8 @@ export async function middleware(req: NextRequest) {
       req.nextUrl.pathname.startsWith('/auth')
     );
 
+    const { data: { session } } = await supabase.auth.getSession();
+
     // If the route is not public and user is not authenticated
     if (!isPublicRoute && !session) {
       const redirectUrl = new URL('/login', req.url);
@@ -35,15 +30,14 @@ export async function middleware(req: NextRequest) {
 
     // If accessing auth routes while authenticated
     if ((req.nextUrl.pathname === '/login' || req.nextUrl.pathname === '/signup') && session) {
-      const redirectTo = req.nextUrl.searchParams.get('redirectTo');
-      return NextResponse.redirect(new URL(redirectTo || '/dashboard', req.url));
+      return NextResponse.redirect(new URL('/dashboard', req.url));
     }
 
     return res;
   } catch (error) {
     console.error('Middleware error:', error);
-    // On error, allow the request to continue to avoid blocking the user
-    return NextResponse.next();
+    // On error, redirect to login
+    return NextResponse.redirect(new URL('/login', req.url));
   }
 }
 
