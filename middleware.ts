@@ -38,11 +38,6 @@ export async function middleware(req: NextRequest) {
       return NextResponse.redirect(new URL('/dashboard', req.url));
     }
 
-    // Redirect /builder to /dashboard if accessed directly
-    if (req.nextUrl.pathname === '/builder' && session) {
-      return NextResponse.redirect(new URL('/dashboard', req.url));
-    }
-
     return res;
   } catch (error) {
     console.error('Middleware error:', error);

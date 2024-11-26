@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Wand2, Plus, Trash2, User, Briefcase, GraduationCap, Lightbulb, FileDown, FileType2, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -91,6 +91,19 @@ export default function BuilderPage() {
     section: 'summary',
     experienceIndex: null,
   });
+
+  useEffect(() => {
+    // Load saved resume data from localStorage if available
+    const savedData = localStorage.getItem('resumeData');
+    if (savedData) {
+      setResumeData(JSON.parse(savedData));
+    }
+  }, []);
+
+  useEffect(() => {
+    // Save resume data to localStorage whenever it changes
+    localStorage.setItem('resumeData', JSON.stringify(resumeData));
+  }, [resumeData]);
 
   const handlePersonalInfoChange = (field: keyof ResumeData['personalInfo'], value: string) => {
     setResumeData(prev => ({
