@@ -18,7 +18,11 @@ export default function LoginPage() {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
-          router.push(redirectTo);
+          // Ensure we redirect to dashboard if coming from builder or root
+          const finalRedirect = redirectTo === '/builder' || redirectTo === '/' 
+            ? '/dashboard' 
+            : redirectTo;
+          router.push(finalRedirect);
         }
       } catch (error) {
         console.error('Error checking session:', error);
@@ -65,7 +69,7 @@ export default function LoginPage() {
             }}
             theme="dark"
             providers={['google']}
-            redirectTo={`${window.location.origin}/auth/callback?redirectTo=${redirectTo}`}
+            redirectTo={`${window.location.origin}/auth/callback?redirectTo=${redirectTo === '/builder' || redirectTo === '/' ? '/dashboard' : redirectTo}`}
           />
         </div>
       </div>
