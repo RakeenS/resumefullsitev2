@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from '@/hooks/use-toast';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
+import InterviewHelp from '@/components/interview/InterviewHelp';
 
 const JOB_STAGES = [
   { value: 'application-followup', label: 'Application Follow-up' },
@@ -783,6 +784,9 @@ export default function JobTools() {
                 </div>
               </DialogContent>
             </Dialog>
+
+            {/* Interview Help */}
+            <InterviewHelp />
           </div>
 
           {/* Saved Items Section */}
