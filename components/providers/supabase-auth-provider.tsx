@@ -24,29 +24,38 @@ export function SupabaseAuthProvider({
   const supabase = createClient();
 
   useEffect(() => {
-    const getUser = async () => {
-      const { data: { user }, error } = await supabase.auth.getUser();
-      if (error) {
-        console.error('Error getting user:', error.message);
-      }
-      setUser(user);
-      setIsLoading(false);
-    };
+    const initializeAuth = async () => {
+      try {
+        // Check for existing session
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          console.error('Error getting session:', sessionError.message);
+          return;
+        }
 
-    // Initial user check
-    getUser();
-
-    // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
         setUser(session?.user ?? null);
         setIsLoading(false);
-      }
-    );
 
-    return () => {
-      subscription.unsubscribe();
+        // Listen for auth state changes
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+          async (event, session) => {
+            console.log('Auth state changed:', event);
+            setUser(session?.user ?? null);
+            setIsLoading(false);
+          }
+        );
+
+        return () => {
+          subscription.unsubscribe();
+        };
+      } catch (error) {
+        console.error('Error initializing auth:', error);
+        setIsLoading(false);
+      }
     };
+
+    initializeAuth();
   }, []);
 
   return (
@@ -56,10 +65,10 @@ export function SupabaseAuthProvider({
   );
 }
 
-export const useSupabaseAuth = () => {
+export function useSupabaseAuth() {
   const context = useContext(SupabaseAuthContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useSupabaseAuth must be used within a SupabaseAuthProvider');
   }
   return context;
-};
+}
